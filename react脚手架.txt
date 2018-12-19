@@ -1,0 +1,581 @@
+
+一、react 环境脚手架的搭建
+
+	1） 全局安装： cnpm i create-react-app -g
+
+	2) 创建项目： create-react-app 项目名称(cd 项目名称   yarn start)
+
+	3） 安装路由： yarn add react-router-dom --dev
+
+
+二、 引入文件的
+
+	import {HashRouter as Router,Route,Link,NavLink,Switch,Redirect} from "react-router-dom";
+
+
+三、路由的跳转
+
+	1）所有的路由的配置都需要在当前内部  BrowserRouter 是路由的一种形式，不带hash值的路由
+
+	    HashRouter 带hash值的路由
+
+	2） <Switch> （switch 和exact 是对比路径，只要完全相同的时候才能跳转到子页面）
+
+	       	{/*路由渲染的第一种方式 ，地址栏的改变*/}
+
+		 <Route path="/index" exact component={Index}/>
+		       		
+		<Route path="/index/indexChild" component={IndexChild}/>
+
+	    </Switch>
+
+	3）{/*路由跳转的第一种方式link，但是不好设置样式*/}
+
+	        <Link to="/index">首页</Link>
+
+	4）{/*路由跳转的第二种方式 */}
+
+	        <a href="#/index">首页</a>
+
+	5）{/*路由跳转的第三种方式(可以设置样式自动生成.active)*/}
+	       		
+	       <li><NavLink to="/index">首页</NavLink></li>
+
+四、需要复习的知识点
+
+	node的传参   Vue 的传参  
+
+
+五、渲染（component,render两种方式）
+
+	 1)属性:  path：匹配的路径
+            
+            	component：渲染的方式
+
+           	render：渲染的方式
+
+          	当path匹配成功的时候会渲染component/render中的组件
+
+	 2)属性：to  决定跳转到哪个路由路径
+
+	 3)NavLink   路由跳转的方式
+          
+		 activeClassName:更改路由选中后的类名  <NavLink to="/home" activeClassName="abc">首页</NavLink>
+           
+                 activeStyle:设置路由选中后的样式 （行间样式）<NavLink to="/order" activeStyle={{background:"green"}}>订单</NavLink>
+
+           区别：  NavLink被选中的时候会加一个类名
+
+	 4) Switch: 只会匹配一个路由的路径
+          
+        	exact:要求路径完全匹配成功  to和path的值必须完全匹配 
+
+       	  5) Redirect:重定向   <Redirect path="/" to="/home"/>
+
+六、编程式导航（必要：在constructor 里面和super里面进行传参props）
+
+	1）this.props.history.push  跳转
+
+        2）this.props.history.goBack   返回
+
+        3） this.props.history.goForward  前进
+
+        4）this.props.history.replace  清除掉路由跳转的历史记录
+
+	5) this.props.history.go (1  -1  0)  前进，后退，刷新
+
+
+七、render 渲染的方式
+
+	1） <Route path="/index"  exact render={({history,match,location})=>{
+
+		      return <Index val="123" history = {history} match ={match}/>
+
+	     }}/>
+
+	2） render 和component之间的区别
+
+		*1） component渲染的时候值是一个组件名称      render渲染的时候值是一个函数，需要返回一个组件/标签
+
+		*2） component渲染的时候不能进行组件的传值    render渲染的时候可以进行组件传值
+
+		*3） component渲染组件的时候可以直接通过this.props拿到   history  macth   location
+
+		     render渲染的时候需要手动的在函数中解构需要用到的参数 通过组件传值的方式进行传递
+
+八、路由的传参 方式
+
+
+	1） path路劲传值 （params） 
+
+	    运行逻辑：  *1） 发送： <Link to={"/details/"+index+"/"+item}>{item}</Link>
+
+		        *2)  传送： <Route path="/details/:id/:name" component={Details}/> 
+
+			*3)  接收： this.state.id = this.props.match.params.id;
+
+
+	2） query传值
+
+	    运行逻辑：  *1） 发送： <Link to={"/details?id="+index+"&name="+item}>{item}</Link>
+
+		        *2)  传送： <Route path="/details" component={Details}/>
+
+			*3)  接收： let data = qs.parse(this.props.location.search.slice(1))  const qs = require("querystring")
+
+
+	3） 编程式导航传值
+
+		
+	    运行逻辑：  *1） 添加事件： onClick={this.handleItemTo.bind(this,index,item)}
+
+		        *2)  传送： handleItemTo(index,item){
+
+        				this.props.history.push({
+
+            					pathname:"/details",
+
+            					state:{
+                					id:index,
+                					name:item
+            					       }
+        				})
+   				     }
+
+			*3)  接收：  let data = this.props.location.state;
+
+	4） 对象传值
+
+	       运行逻辑：  *1） 发送：<Link to={{pathname:"/details",state:{id:index,name:item}}}>{item}</Link>
+
+		           *2)  传送： <Route path="/details" component={Details}/> 
+
+			   *3)  接收： let data = this.props.location.state;
+
+
+
+九、flux 的数据双向逻辑思维
+
+	1） 建立数据库(index.js) (引入events  const EventEmitter = require("events");)
+
+		const store = Object.assign(EventEmiter.prototype,{
+
+			//定义公共的数据库
+
+			state:{
+				n:0
+			},
+	
+			//获取state里面的数据
+
+			getDate(){
+
+				return this.state
+			}
+		})
+
+	2）APP里面引入   this.state = store.getDate();
+
+	3) 设置事件触发 改变数据的函数   onClick={this.handlerAdd.bind(this)}
+
+	4） 函数执行 
+
+		*1） let action = {type:"ADD_NUMBER"}  //定义一个动作然后运行 ,然后对这个动作进行描述
+
+		*2)  dispatcher.dispatch(action)	//将这个动作传递给dispatcher
+
+	5)  yarn add flux --dev  (安装flux 插件)
+
+	6） dispatcher里面进行数据的修改
+
+		*1） import {Dispatcher} from 'flux';
+
+		*2） const dispatcher = new Dispatcher();
+
+		*3） dispatcher.register((action)=>{
+
+			    switch(action.type){
+
+				//对事件描述进行比较，然后定义改变数据的函数
+
+				case "ADD_NUMBER":
+					store.handleAddNum();
+					break;
+			    }
+		     })
+
+	7）  *1) 在index里面 定义这个修改的函数  handleAddNum  并且修改数据如 this.state.n++;，然后用this.emit 来触发这个事件 this.emit("update")  
+
+	     *2）定义新函数来监听 emit触发的事件  handleUpdate(cb){  this.on("update",cb)}
+
+	8） 在APP里面接收 调用新的函数对数据修改显示出来  
+
+		*1） store.handleUpdate(this.handleUpdate.bind(this));
+
+		*2） handleUpdate(){ this.setState(store.getDate()) }
+
+
+十、redux关于数据的管理 （类似于axios 是一个状态管理工具，能够存数据，取数据，和修改数据）
+
+	1） yarn add redux --dev (安装)
+
+
+	2） 创建 store 
+
+		*1）import { creatStore } from "redux"  (引入创建store的方法)
+
+		*2）const store = creatStore (reducers)  (创建store creatStore 里面必须传递一个参数，并且这个参数必须是一个纯函数)
+
+		*3） export default store;               （导出）
+
+		*4） 必要的引入文件如 （import reducers from "./reducer"） 
+
+
+	3） 创建 reducers 文件对数据进行处理
+
+		*1） 必须要有一个默认的初始值  如 ：const defaultState ={ inputVal:"" ,arr=[]}
+
+		*2) 必须返回一个纯函数   export default (state=defaultState,action)=>{  一定记得要返回 return state  }
+
+		*3) state数据是只允许读 不允许修改  所以必须进行深度拷贝  
+
+			如： let addState = JSON.parse(JSON.stringify(state))
+
+	4） 组件里面对数据进行引用的时候要用到的两个关键东西
+
+		*1） store.subscribe(this.handleUpdate.bind(this))   subscribe这个属性是 reducers里面的 
+
+		*2)  store.dispatch(action)                          dispatch 这个属性也是 对自定义的动作进行触发
+
+
+十一、 对结构进行划分，拆分 ，拆分为UI组件 和容器组件两个部分
+
+	1） 进行拆分的时候，应该注意的问题，在constructor 钩子函数里面这个，定义的时候用props 
+
+		如：	let {inputVal} = this.props
+
+	2） 方法调用的时候用的是 this.props.handleChange ，如果后面不需要传参的时候省略bind（this），需要的时候加上就可以
+		
+		如：this.props.handleDel.bind(this,index)
+
+	3) 创建两个文件夹对 自定义的方法 和类型介绍进行处理 
+
+		如：const del_item= "DEL_ITEM"   导出： export default { del_item }
+
+		如：export const Del_action =(index)=>({ type:actionTypes.del_item,  value:index })
+
+
+十二、 一种解决跨域问题的代理 方法
+
+	1） 新建js文件 文件名字必须是： setupProxy.js 
+
+	2) 代理处理 ：
+		
+		const proxy = require("http-proxy-middleware");
+
+		moudle.export = (app) =>{
+			
+			app.use("/vb",proxy({
+
+				target:"https://h5.ele.me",
+
+				changeOrigin:true
+			}))	
+			
+		}
+	3) 与另一种代理解决方法对比 ：
+
+		"/db":{
+			target:"https://h5.ele.me",
+
+			changeOrigin:true,
+
+			pathRewrite:{
+				
+				"/db":"/"
+			}
+		}
+		(并且改变代理之后一定要重启项目 )
+
+
+十三、 react-redux  的用法 
+
+	1）安装： yarn add react-redux  --dev
+
+	2)  关于 store的引用，react-redux 提供了更简单的方法  
+
+		如： import {Provider} from 'react-redux'; 然后用<Provider>  包裹所有路由组件
+
+	3) 第二个属性的应用  import {connect} from "react-redux"
+
+		*1） connect 是用来链接当前组件与store
+
+		*2） export default connect(mapStateToProps,mapDispatchToProps)(Home)
+
+		     第一个括号里面有2个参数   第一个参数是：mapStateToProps  第二个参数是：mapDispatchToProps
+
+		     第二个括号里面有1个参数   当前组件的名称
+
+	4） const mapDispatchToProps = (dispatch)=>({
+
+   		 handleAddNum(){
+
+        		let action={
+
+            			type:"ADD_NUMBER"
+       			 }
+
+       			 dispatch(action)
+    		}
+	   })
+
+		注意： 如果要进行路由的编程式跳转的时候，要在里面传入一个参数  props   然后执行就可以
+
+			如： props.history.push("./list")
+
+
+十四、fetch 对数据的请求
+
+
+	1）安装  yarn add whatwg-fetch --dev
+
+
+	2) 默认的get 请求方式 
+
+		fetch(url)
+
+		.then((res)=>res.json())  ( 返回的数据不能直接使用 ，所以要进行处理转为json 数据 )
+
+		.then( (data)=>{ console.log(data)} )
+
+		默认是get 请求，如果需要像后端那样发送数据的话，直接在地址后面做拼接就OK
+
+
+	3） post请求的方法
+
+		let obj ={  username:"123", password:"345" } 
+
+		fetch(url,{
+
+			method:"post",
+
+			body:JSON.stringify(obj),
+
+			headers: {  //必须要写请求头的设置
+
+				"Context-type":"application/json"
+			}
+			
+		}).then((res)=>res.json())
+
+		  .then((data)=> console.log(data))
+
+		如果携带cookie 进行提交的时候，需要添加  {  credentials "include" }
+
+
+十五、关于中间件的使用
+
+	1） 安装 ： yarn add redux-promise-middleware  --dev  (reduxPromiseMiddleware)
+
+	2) 组件的使用： applyMiddleware 是对中间件的使用
+
+		如：const store = createStore(reducers,applyMiddleware(reduxPromiseMiddleware))
+
+	3) 顺便记一个方法是： combinReducers 是对多个 reducers 进行合并的 
+
+	4） 关于跨域的代理请求：
+
+		const proxy = require("http-proxy-middleware")  安装： yarn add http-proxy-middleware --dev
+
+		module.exports=(app)=>{
+			
+			app.use("/wb",proxy({
+			
+				target:"https://h5.ele.me",
+
+				changeOrigin:true
+			
+			}))
+
+		}
+
+	5)  怎么拿取数据 （需要知道promise的状态 代表 ）
+
+	       *1) const mapDispatchToProps = (dispatch)=>{
+
+			getData(){
+
+				dispatch(get_async_action())
+
+			}
+		}
+
+
+		*2) export const get_async_action =() =>({
+
+			type:"GET_ASYNC_ACTION",
+
+			payload: new Promise(resolve=>{
+
+				let url = "oooooo"
+
+				fetch(url)    (安装  yarn add whatwg-fetch --dev)
+
+				.then(res=>res.json())
+
+				.then((data)=>{
+
+					resolve(data)
+				})
+			})
+		 })
+
+		
+		*3) case "GET_DATA_FULFILLED":
+
+            		let goodsState = JSON.parse(JSON.stringify(state))
+
+            		goodsState.goodsList = action.payload.items
+
+            		return goodsState
+
+
+		    case "GET_ASYNC_ACTION_FULFILLED":
+
+           		 console.log(action.payload)
+
+			(得到数据，进行处理)
+
+
+十六、高阶组件
+
+
+	高阶组件： 接受一个组件，返回一个相对增强的高阶组件
+
+			函数接受一个参数，这个参数是一个组件，返回值是一个增强性的组件
+ 
+
+		*1） 属性代理：实现组件的复用性
+
+
+		*2） 反向集成： 渲染劫持   根据条件渲染不同组件或数据
+
+
+十七、利用高阶组件的的渲染劫持建立路由守卫
+
+	1) <Myroute path="/list" Component={List} flag={ false } >
+
+	2) 封装守卫
+
+		import React,{Component} from "react"
+
+		import { Route ,Redirect} from "react-router-dom" 
+
+		export default class Myroute extends  Component{
+
+			rendere(){
+			
+				let { path,component,falg} = this.props;
+				
+				return(
+
+					flag? <Route path={path} component={component}>:<Redirect to="/login">
+				)
+
+			}
+		}
+
+
+十八、 路由懒加载
+
+
+	1） 简单的路由懒加载 
+
+		*1）安装 yarn add react-loadbale --dev
+
+		*2) 引用 ： import Loading from "./components/common/loading"
+
+		*3） 使用路由懒加载的时候loadable必须放在import之后
+
+			const Home = Loading({
+
+				loader:()=> import("路径"),
+
+				loading:"loading"(可以引入一个组件)
+
+			})
+
+			渲染的时候用 render 方法
+
+			<Route path="/home" render={ ()=>{ return <Home/> }}/>
+
+
+	2) 组件的懒加载 （可以实现模块化）
+
+		1） 创建组件one 
+
+		2） 组件two 以懒加载的方式引入 
+
+			const One = Loading({
+
+				loader:()=>import(./one),
+
+				loading:Loading(这里是一个组件)
+			})
+
+			export default class Home extends Component{
+				
+				render(){
+					
+					return(
+
+						<div><One/></div>
+
+					)
+				}
+			}
+
+			
+
+		
+
+
+		
+
+		
+		
+
+
+
+
+		
+	
+	
+
+
+		
+	
+
+
+		
+
+
+          
+
+	
+           
+
+	
+            
+
+
+
+	       						
+		       		
+	       
+		       		
+
+	
+
+	
+  
